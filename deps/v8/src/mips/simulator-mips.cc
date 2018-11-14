@@ -6818,8 +6818,12 @@ void Simulator::DecodeTypeImmediate() {
           DCHECK(IsMipsArchVariant(kMips32r6));
           int32_t base = get_register(instr_.BaseValue());
           int32_t offset9 = instr_.Imm9Value();
+          int32_t bit6 = instr_.Bit(6);
           WriteW(base + offset9, rt, instr_.instr());
-          set_register(rt_reg, 1);
+          // Only SC (and not SCX) instruction modifies rt_reg
+          if (bit6 == 0) {
+            set_register(rt_reg, 1);
+          }
           break;
         }
         default:

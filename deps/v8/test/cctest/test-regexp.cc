@@ -531,7 +531,7 @@ static bool NotDigit(uc16 c) {
 static bool IsWhiteSpaceOrLineTerminator(uc16 c) {
   // According to ECMA 5.1, 15.10.2.12 the CharacterClassEscape \s includes
   // WhiteSpace (7.2) and LineTerminator (7.3) values.
-  return v8::internal::WhiteSpaceOrLineTerminator::Is(c);
+  return v8::internal::IsWhiteSpaceOrLineTerminator(c);
 }
 
 
@@ -792,7 +792,7 @@ class ContextInitializer {
   v8::Local<v8::Context> env_;
 };
 
-static ArchRegExpMacroAssembler::Result Execute(Code* code, String* input,
+static ArchRegExpMacroAssembler::Result Execute(Code code, String* input,
                                                 int start_offset,
                                                 Address input_start,
                                                 Address input_end,
@@ -1968,7 +1968,7 @@ class UncachedExternalString
  public:
   const char* data() const override { return "abcdefghijklmnopqrstuvwxyz"; }
   size_t length() const override { return 26; }
-  bool IsCompressible() const override { return true; }
+  bool IsCacheable() const override { return false; }
 };
 
 TEST(UncachedExternalString) {
@@ -1978,9 +1978,9 @@ TEST(UncachedExternalString) {
   v8::Local<v8::String> external =
       v8::String::NewExternalOneByte(isolate, new UncachedExternalString())
           .ToLocalChecked();
-  CHECK(
-      v8::Utils::OpenHandle(*external)->map() ==
-      ReadOnlyRoots(CcTest::i_isolate()).short_external_one_byte_string_map());
+  CHECK(v8::Utils::OpenHandle(*external)->map() ==
+        ReadOnlyRoots(CcTest::i_isolate())
+            .uncached_external_one_byte_string_map());
   v8::Local<v8::Object> global = env->Global();
   global->Set(env.local(), v8_str("external"), external).FromJust();
   CompileRun("var re = /y(.)/; re.test('ab');");
